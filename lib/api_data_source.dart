@@ -3,16 +3,16 @@ import 'base_network.dart';
 class ApiDataSource {
   static ApiDataSource instance = ApiDataSource();
 
-  Future<Map<String, dynamic>> loadCategories() {
+  Future<Map<String, dynamic>> getCategories() {
     return BaseNetwork.get("categories.php");
   }
 
-  Future<Map<String, dynamic>> loadMeals() {
-    return BaseNetwork.get("filter.php?c=Seafood");
+  Future<Map<String, dynamic>> getMeals(String idCategory) {
+    return BaseNetwork.get("filter.php?c=$idCategory");
   }
 
-  Future<Map<String, dynamic>> loadDetails() {
-    return BaseNetwork.get("lookup.php?i=52772");
+  Future<Map<String, dynamic>> getDetailMeals(String idMeals) {
+    return BaseNetwork.get("lookup.php?i=$idMeals");
   }
 
 }

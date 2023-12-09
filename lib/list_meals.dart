@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:responsi/api_data_source.dart';
-import 'package:responsi/model/model_categories.dart';
-import 'package:responsi/model/model_details.dart';
 import 'package:responsi/model/model_meals.dart';
 import 'package:responsi/detail_details.dart';
 
-
 class PageListMeals extends StatefulWidget {
-  const PageListMeals({super.key});
+  final String ModelCategories;
+  const PageListMeals({super.key, required this.ModelCategories});
 
   @override
   State<PageListMeals> createState() => _PageListMeals();
@@ -19,83 +17,69 @@ class _PageListMeals extends State<PageListMeals> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.brown[900],
-        title: Text(" LIST"),
+        title: Text(widget.ModelCategories),
       ),
-      body: _buildListMealsBody(),
-    );
-  }
 
-  Widget _buildListMealsBody() {
-    return Container(
-      child: FutureBuilder(
-          future: ApiDataSource.instance.loadMeals(),
-          builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
+        body: FutureBuilder(
+          future: ApiDataSource.instance.getMeals(widget.ModelCategories),
+          builder: (BuildContext context, snapshot) {
             if (snapshot.hasError) {
-              return _buildErrorSection();
+              return Center(
+                child: Text('ERROR'),
+              );
             }
             if (snapshot.hasData) {
-              ModelMeals meals = ModelMeals.fromJson(snapshot.data);
-              return _buildSuccessSection(meals);
+              Meal meal  = Meal.fromJson(snapshot.data!);
+              return GridView.builder(
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2),
+                  itemCount: meal.meals?.length,
+                  itemBuilder: (context, int index) {
+                    final Meals? meals = meal.meals?[index];
+                    return InkWell(
+                      onTap: () {
+                        Navigator.push(context, MaterialPageRoute(builder: (context) => PageDetails(idMeals: '${meals?.idMeal}')));
+                      },
+                      child: Card(
+                        shape: RoundedRectangleBorder(
+                          side: BorderSide(
+                            color: Colors.brown.shade900
+                          )
+                        ),
+                        color: Colors.brown.shade100,
+                        child: SizedBox(
+                          height: 200,
+                          width: MediaQuery.of(context).size.width,
+                          child: Column(
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.only(top: 5.0),
+                                child: Image.network(
+                                  '${meals?.strMealThumb}',
+                                  height: 140,
+                                  width: 150,
+                                ),
+                              ),
+                              SizedBox(height: 10,),
+                              Text(
+                                '${meals?.strMeal}',
+                                textAlign: TextAlign.center,
+                              )
+                            ],
+                          ),
+                        ),
+                      ),
+                    );
+                  }
+              );
             }
-            return _buildLoadingSection();
-          }),
-    );
-  }
-
-  Widget _buildErrorSection() {
-    return Center(
-      child: Text("Error"),
-    );
-  }
-
-  Widget _buildSuccessSection(ModelMeals data) {
-    return ListView.builder(
-        itemCount: data.meals!.length,
-        itemBuilder: (BuildContext context, int index) {
-          return _BuildItemReports(data.meals![index]);
-        });
-  }
-
-  Widget _buildLoadingSection() {
-    return Center(
-      child: CircularProgressIndicator(),
-    );
-  }
-
-  Widget _BuildItemReports(Meals ) {
-    return InkWell(
-      onTap: () => Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => PageDetailDetails(details: Meals),
+            return Center(
+              child: CircularProgressIndicator(color: Colors.deepOrange[900]),
+            );
+          },
         ),
-      ),
-      child: Card(
-        color: Colors.brown[100],
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            Container(
-              width: 120,
-              child: Image.network(Meals.strMealThumb!),
-            ),
-            SizedBox(
-              width: 20,
-            ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                    width: 150,
-                    child: Text(Meals.strMeal!))
-              ],
-            ),
-          ],
-        ),
-      ),
     );
-
-
-
   }
+
+
+
 }

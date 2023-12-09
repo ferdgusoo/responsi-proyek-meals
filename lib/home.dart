@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'api_data_source.dart';
 import 'list_meals.dart';
+import 'list_meals.dart';
 import 'model/model_categories.dart';
 
 class PageListCategories extends StatefulWidget {
@@ -25,14 +26,67 @@ class _PageListCategories extends State<PageListCategories> {
   Widget _buildListCategoriesBody() {
     return Container(
       child: FutureBuilder(
-          future: ApiDataSource.instance.loadCategories(),
+          future: ApiDataSource.instance.getCategories(),
           builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
             if (snapshot.hasError) {
               return _buildErrorSection();
             }
             if (snapshot.hasData) {
-              ModelCategories categories = ModelCategories.fromJson(snapshot.data);
-              return _buildSuccessSection(categories);
+              ModelCategories category = ModelCategories.fromJson(snapshot.data!);
+              return ListView.builder(
+                  itemCount: category.categories?.length,
+                  itemBuilder: (BuildContext context, int index) {
+                    var categories = category.categories?[index];
+                    return InkWell(
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              PageListMeals(ModelCategories: '${categories?.strCategory}'),
+                        ),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(5.0),
+                        child: Card(
+                          shape: RoundedRectangleBorder(
+                              side: BorderSide(
+                                  color: Colors.brown.shade900
+                              )
+                          ),
+                          color: Colors.brown.shade100,
+                          child: Padding(
+                            padding: const EdgeInsets.only(bottom: 8.0),
+                            child: Column(
+                              children: [
+                                Image.network(
+                                  '${categories?.strCategoryThumb}',
+                                  height: 150,
+                                  width: 150,
+                                ),
+                                Text(
+                                  '${categories?.strCategory}',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                SizedBox(height: 10,),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 5.0),
+                                  child: Text(
+                                    '${categories?.strCategoryDescription}', style: TextStyle(backgroundColor:
+                                  Colors.brown.shade900, color: Colors.brown.shade100),
+                                    textAlign: TextAlign.justify,
+                                  ),
+                                )
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  }
+              );
             }
             return _buildLoadingSection();
           }),
@@ -45,13 +99,6 @@ class _PageListCategories extends State<PageListCategories> {
     );
   }
 
-  Widget _buildSuccessSection(ModelCategories data) {
-    return ListView.builder(
-        itemCount: data.categories!.length,
-        itemBuilder: (BuildContext context, int index) {
-          return _BuildItemUsers(data.categories![index]);
-        });
-  }
 
   Widget _buildLoadingSection() {
     return Center(
@@ -59,45 +106,4 @@ class _PageListCategories extends State<PageListCategories> {
     );
   }
 
-  Widget _BuildItemUsers(Categories Categories) {
-    return InkWell(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => PageListMeals(),
-          ),
-        );
-      },
-      child: Card(
-        color: Colors.brown[100],
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            Center(
-              child: Image.network(Categories.strCategoryThumb!),
-            ),
-            SizedBox(
-              width: 20,
-            ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Center(
-                    child: Text(Categories.strCategory!, style: TextStyle(fontSize: 15,),)),
-              ],
-            ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                    width: 400,
-                    child: Text(Categories.strCategoryDescription!, style: TextStyle(fontSize: 15,),)),
-              ],
-            )
-          ],
-        ),
-      ),
-    );
-  }
 }
